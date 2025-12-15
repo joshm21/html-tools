@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Media Player</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+        }
+
+        video, audio {
+            width: 80%;
+            height: auto;
+            max-height: 80%;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #444;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #666;
+        }
+
+        #fileInput {
+            margin-bottom: 20px;
+        }
+
+        #fileNameDisplay {
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="fileInput" accept=".mp4,.mp3" webkitdirectory directory multiple />
+
+    <div id="fileNameDisplay"></div>
+
+    <video id="videoPlayer" controls style="display: none;">
+        Your browser does not support the video tag.
+    </video>
+    <audio id="audioPlayer" controls style="display: none;">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div>
+        <button id="replayButton">Replay</button>
+        <button id="nextButton">Next</button>
+    </div>
+
+    <script>
+        let mediaFiles = [];
+        let unplayedFiles = [];
+        let currentIndex = -1;
+
+        const videoPlayer = document.getElementById('videoPlayer');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const files = Array.from(event.target.files).filter(file =>
+                file.name.toLowerCase().endsWith('.mp4') ||
+                file.name.toLowerCase().endsWith('.mp3')
+            );
+
+            if (files.length === 0) {
+                alert('No MP4 or MP3 files found.');
+                return;
+            }
+
+            mediaFiles = files;
+            unplayedFiles = [...mediaFiles];
+            loadNextMedia();
+        });
+
+        function getRandomIndex(array) {
+            return Math.floor(Math.random() * array.length);
+        }
+
+        function loadNextMedia() {
+            if (unplayedFiles.length === 0) {
+                alert("You've played all files!");
+                return;
+            }
+
+            const randomIdx = getRandomIndex(unplayedFiles);
+            const file = unplayedFiles.splice(randomIdx, 1)[0]; // Remove from unplayed
+            currentIndex = mediaFiles.indexOf(file);
+
+            playFile(file);
+        }
+
+        function replayCurrentMedia() {
+            if (currentIndex === -1) return;
+            playFile(mediaFiles[currentIndex]);
+        }
+
+        function playFile(file) {
+            const url = URL.createObjectURL(file);
+            fileNameDisplay.textContent = file.name;
+
+            if (file.name.toLowerCase().endsWith('.mp4')) {
+                videoPlayer.style.display = 'block';
+                audioPlayer.style.display = 'none';
+                videoPlayer.src = url;
+                videoPlayer.play();
+            } else {
+                videoPlayer.style.display = 'none';
+                audioPlayer.style.display = 'block';
+                audioPlayer.src = url;
+                audioPlayer.play();
+            }
+        }
+
+        document.getElementById('nextButton').addEventListener('click', loadNextMedia);
+        document.getElementById('replayButton').addEventListener('click', replayCurrentMedia);
+    </script>
+</body>
+</html>
+
